@@ -61,7 +61,11 @@ export function parseVoiceIntent(transcript, products = []) {
   }
   if (/\b(open|show|find|take me to|go to|browse|see|want|get)\b.*\b(menu|coffees?)\b/.test(text) || /^(the )?(coffee )?menu$/.test(text) || /^(the )?coffee$/.test(text)) return { type: 'OPEN_MENU' };
   if (/\b(open|show|take me to|go to|view|see)?\s*(my |the )?(cart|bag|card)\b/.test(text)) return { type: 'OPEN_CART' };
-  if (/\b(checkout|check out|proceed to checkout|go to checkout)\b/.test(text)) return { type: 'CHECKOUT' };
+  if (
+    /\b(review my order|review your order|review order|checkout|check out|proceed to checkout|go to checkout)\b/.test(text)
+  ) {
+    return { type: 'CHECKOUT' };
+  }
   if (/\b(contact|contact page|contact us|message the cafe)\b/.test(text)) return { type: 'OPEN_CONTACT' };
   if (/\b(register|sign up|create an account|create account)\b/.test(text)) return { type: 'OPEN_REGISTER' };
   if (/\b(sign out|log out|logout|log off|sign off)\b/.test(text)) return { type: 'SIGN_OUT' };
@@ -85,7 +89,7 @@ export class TouchlessFeedback {
     return this.context;
   }
   unlock() {
-    try { const context = this.getAudioContext(); if (context?.state !== 'running') context?.resume().catch(() => {}); } catch { /* Audio is optional. */ }
+    try { const context = this.getAudioContext(); if (context?.state !== 'running') context?.resume().catch(() => { }); } catch { /* Audio is optional. */ }
   }
   sound(kind = 'select') {
     if (!this.soundEnabled) return;
@@ -93,7 +97,7 @@ export class TouchlessFeedback {
     try {
       context = this.getAudioContext();
       if (!context) return;
-      if (context.state !== 'running') { context.resume().then(() => this.playSound(context, kind)).catch(() => {}); return; }
+      if (context.state !== 'running') { context.resume().then(() => this.playSound(context, kind)).catch(() => { }); return; }
       this.playSound(context, kind);
     } catch { /* Audio is an optional browser capability. */ }
   }
