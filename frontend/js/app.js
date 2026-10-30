@@ -9,7 +9,7 @@ import { loginAdmin, getAdminSession, logoutAdmin, getAdminMenu, saveAdminMenu, 
 import { icon } from './icons.js?v=cart-ui-v5-20261006';
 import { renderCustomerAuth, renderContactPage, renderCustomerAccount } from './customer-pages.js?v=customer-pages-20261005';
 import { registerCustomer, loginCustomer, getCustomerSession, logoutCustomer, sendContactMessage } from './customer-api.js?v=customer-pages-20261005';
-import { parseVoiceIntent, TouchlessFeedback, VoiceControl } from './touchless.js?v=voice-complete-control-v2';
+import { parseVoiceIntent, TouchlessFeedback, VoiceControl } from './touchless.js?v=voice-complete-control-v3';
 
 let gestureSocket = null, browserCameraStream = null, preferBrowserCamera = false, cameraDisabled = false, cameraFrameTimer = null, cameraFramePending = false, handTracker = null; const view = document.querySelector('#view'); let menu, route = 'home', activeSection = 'home', category = 'All Coffee', query = '', editing = null, chosen = null, opts = defaults(), qty = 1, lastOrder = null, language = 'en', customerIdentity = null, customerAuthMode = 'login', customerAuthError = '';
 let homeImageObserver = null;
@@ -17,6 +17,7 @@ function observeFeaturedHomeImages() { homeImageObserver?.disconnect(); homeImag
 const cats = ['All Coffee', 'Espresso', 'Latte', 'Cappuccino', 'Mocha', 'Matcha', 'Tea', 'Non-Coffee'];
 let kitchenRefresh; const go = name => { clearInterval(kitchenRefresh); route = name; if (name === 'kitchen') kitchenRefresh = setInterval(() => { if (handPinching) return; adminTab === 'orders' ? renderKitchen() : refreshAdminOrderCounts() }, 5000); connectGestures(); window.scrollTo(0, 0); render() };
 const touchlessFeedback = new TouchlessFeedback();
+let voiceWasOnBeforeCamera = false;
 const voiceControl = new VoiceControl(candidates => {
   const choices = Array.isArray(candidates) ? candidates : [{ transcript: candidates, confidence: 1 }];
   for (let index = 0; index < choices.length; index++) {
@@ -45,77 +46,77 @@ let scrollNavigationFrame = 0;
 
 
 function updateActiveNavigation() {
-    if (route !== 'home') return;
+  if (route !== 'home') return;
 
-    const sections = [
-        {
-            id: 'home',
-            element: document.querySelector('.story-hero')
-                || document.querySelector('.hero')
-                || document.querySelector('#home')
-        },
-        {
-            id: 'menu',
-            element: document.querySelector('.story-menu-section')
-                || document.querySelector('#menu')
-        },
-        {
-            id: 'about',
-            element: document.querySelector('.story-about-section')
-                || document.querySelector('#about')
-        },
-        {
-            id: 'gallery',
-            element: document.querySelector('.story-gallery-section')
-                || document.querySelector('#gallery')
-        },
-        {
-            id: 'contact',
-            element: document.querySelector('.story-contact-section')
-                || document.querySelector('#contact')
-        }
-    ].filter(section => section.element);
-
-    if (sections.length === 0) return;
-
-    const header = document.querySelector('.topbar');
-    const headerHeight = header
-        ? header.getBoundingClientRect().height
-        : 0;
-
-    const activationLine = headerHeight + 30;
-    let currentSection = sections[0];
-
-    for (const section of sections) {
-        if (section.element.getBoundingClientRect().top <= activationLine) {
-            currentSection = section;
-        }
+  const sections = [
+    {
+      id: 'home',
+      element: document.querySelector('.story-hero')
+        || document.querySelector('.hero')
+        || document.querySelector('#home')
+    },
+    {
+      id: 'menu',
+      element: document.querySelector('.story-menu-section')
+        || document.querySelector('#menu')
+    },
+    {
+      id: 'about',
+      element: document.querySelector('.story-about-section')
+        || document.querySelector('#about')
+    },
+    {
+      id: 'gallery',
+      element: document.querySelector('.story-gallery-section')
+        || document.querySelector('#gallery')
+    },
+    {
+      id: 'contact',
+      element: document.querySelector('.story-contact-section')
+        || document.querySelector('#contact')
     }
+  ].filter(section => section.element);
 
-    if (activeSection !== currentSection.id) {
-        activeSection = currentSection.id;
+  if (sections.length === 0) return;
 
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.classList.toggle(
-                'active',
-                link.dataset.section === activeSection
-            );
-        });
+  const header = document.querySelector('.topbar');
+  const headerHeight = header
+    ? header.getBoundingClientRect().height
+    : 0;
 
-        if (location.hash !== `#${activeSection}`) {
-            history.replaceState(null, '', `#${activeSection}`);
-        }
+  const activationLine = headerHeight + 30;
+  let currentSection = sections[0];
+
+  for (const section of sections) {
+    if (section.element.getBoundingClientRect().top <= activationLine) {
+      currentSection = section;
     }
+  }
+
+  if (activeSection !== currentSection.id) {
+    activeSection = currentSection.id;
+
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.classList.toggle(
+        'active',
+        link.dataset.section === activeSection
+      );
+    });
+
+    if (location.hash !== `#${activeSection}`) {
+      history.replaceState(null, '', `#${activeSection}`);
+    }
+  }
 }
 
 
 window.addEventListener('scroll', () => {
-    if (scrollNavigationFrame) return;
+  if (scrollNavigationFrame) return;
 
-    scrollNavigationFrame = requestAnimationFrame(() => {
-        updateActiveNavigation();
-        scrollNavigationFrame = 0;
-    });
+  scrollNavigationFrame = requestAnimationFrame(() => {
+    updateActiveNavigation();
+    scrollNavigationFrame = 0;
+  });
 }, { passive: true });
 function lineItem(p, options = defaults(), quantity = 1) { const labels = {}; for (const key of p.customizations) { if (key === 'addons') labels.addons = (options.addons || []).map(id => optionLabel(menu, 'addons', id)); else labels[key] = optionLabel(menu, key, options[key]) } return { lineId: editing || crypto.randomUUID(), productId: p.id, name: p.name, image: p.image, unitPrice: priceFor(p, options, menu), quantity, options, optionLabels: labels } }
 function syncCameraUI() { const headerCamera = document.querySelector('#cameraHeaderToggle'); if (headerCamera) { headerCamera.innerHTML = icon(browserCameraStream ? 'close' : 'camera') + `<span>${browserCameraStream ? 'Close camera' : 'Open camera'}</span>`; headerCamera.setAttribute('aria-label', browserCameraStream ? 'Close camera' : 'Open camera'); headerCamera.setAttribute('aria-pressed', String(!!browserCameraStream)) } const preview = document.querySelector('#browserCameraPreview'); if (preview) { preview.hidden = !browserCameraStream; preview.srcObject = browserCameraStream || null } const widget = document.querySelector('#handCameraWidget'); const widgetVideo = document.querySelector('#cameraWidgetVideo'); if (widget) { widget.hidden = !browserCameraStream; if (widgetVideo) widgetVideo.srcObject = browserCameraStream || null } const button = document.querySelector('#cameraToggle'); if (button) { button.innerHTML = icon(browserCameraStream ? 'close' : 'camera') + ' ' + (browserCameraStream ? 'Close camera' : 'Open camera'); button.setAttribute('aria-pressed', String(!!browserCameraStream)) } const adminCameraButton = document.querySelector('#adminCameraToggle'); if (adminCameraButton) adminCameraButton.innerHTML = icon(browserCameraStream ? 'close' : 'camera') + ' <span>' + (browserCameraStream ? 'Close hand control' : 'Hand control') + '</span>'; const status = document.querySelector('#helpCameraStatus'); if (status) status.textContent = browserCameraStream ? 'Camera on · point at a button, then pinch' : cameraDisabled ? 'Camera off' : document.querySelector('#cameraLabel')?.textContent || 'Camera off'; document.querySelector('.camera-pill')?.classList.toggle('offline', !browserCameraStream); document.querySelector('#cameraDot')?.style.setProperty('background', browserCameraStream ? 'var(--green)' : '#bd6049'); updateGestureIndicator() }
@@ -238,9 +239,9 @@ function gestureIcon(name) { if (name === 'fist') return '<span class="gesture-e
 function helpScreen() {
   const gestures = [['one', 'Point', 'Move the hand cursor over a control'], ['pinch', 'Pinch and release', 'Select the highlighted control'], ['thumbs_up', 'Thumbs up', 'Hold steady to select the highlighted control'], ['palm', 'Open palm', 'Hold steady to open the menu'], ['fist', 'Closed fist', 'Hold briefly to cancel and go back one step'], ['left', 'Move left', 'Focus the previous choice'], ['right', 'Move right', 'Focus the next choice'], ['up', 'Move up', 'Scroll up'], ['down', 'Move down', 'Scroll down']];
   return `<section class="page-wrap help-page"><div class="help-heading"><span class="eyebrow">${icon('hand')} TOUCHLESS ORDERING</span><h1 class="page-title">Your hand is the pointer.</h1><p class="subtle">Keep one hand in the camera view. Move your index finger to point. Wait for the control highlight, then pinch and release on that same control to select it. For checkout, review the order and hold a pinch on Confirm until it submits.</p></div><div class="gesture-howto"><b>${icon('sparkle')} Order in five steps</b><span>1. Point at a drink</span><span>2. Pinch to customize</span><span>3. Choose options and add</span><span>4. Review your cart</span><span>5. Hold pinch to confirm</span></div><div class="gesture-grid">${gestures.map(([key, title, description]) => `<div class="gesture-tile"><b>${gestureIcon(key)}</b><strong>${title}</strong><small>${description}</small></div>`).join('')}</div><section class="voice-help"><b>VOICE CONTROL</b><p>For a quick order, say “Order a latte” or “I want a latte” to add it with standard options. Say only the drink name to customize it first. Then say “Open cart”, “Checkout”, and “Place my order”. Say “scroll up” or “scroll down” to move the page. Voice recognition uses English (United States).</p><small>Voice: ${voiceControl.listening ? 'Listening' : 'Not listening'} · Sound: ${touchlessFeedback.soundEnabled ? 'On' : 'Off'}</small></section><div class="camera-preview"><div class="camera-preview-heading"><div><span class="eyebrow">${icon('camera')} LIVE CAMERA</span><b>Hand control</b><p>Allow camera access. Video stays on this device.</p></div><button id="cameraToggle" class="camera-toggle" type="button" aria-pressed="${!!browserCameraStream}" data-action="toggle-camera">${icon(browserCameraStream ? 'close' : 'camera')} ${browserCameraStream ? 'Close camera' : 'Open camera'}</button></div><span id="helpCameraStatus" class="camera-status">${browserCameraStream ? 'Camera on · move your hand to see the pointer' : cameraDisabled ? 'Camera off' : document.querySelector('#cameraLabel').textContent}</span></div></section>`;
-} async function enableBrowserCamera() { const video = document.querySelector('#cameraSource'); const status = document.querySelector('#helpCameraStatus'); const button = document.querySelector('#cameraToggle'); try { if (!navigator.mediaDevices?.getUserMedia) throw new Error('Camera access requires localhost or a secure browser page.'); cameraDisabled = false; preferBrowserCamera = true; browserCameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 24, max: 30 } }, audio: false }); if (!video) throw new Error('Camera video element is unavailable.'); video.srcObject = browserCameraStream; await video.play(); document.querySelector('#handCameraWidget')?.classList.remove('is-minimized'); syncCameraUI(); document.querySelector('#cameraDot').style.background = 'var(--green)'; document.querySelector('.camera-pill').classList.remove('offline'); try { await loadHandTracker(); document.querySelector('#cameraLabel').textContent = 'Camera on - gestures ready'; connectGestures() } catch (trackerError) { document.querySelector('#cameraLabel').textContent = 'Camera preview only'; if (status) status.textContent = trackerError.message; showToast(trackerError.message) } } catch (error) { if (browserCameraStream) browserCameraStream.getTracks().forEach(track => track.stop()); browserCameraStream = null; preferBrowserCamera = false; cameraDisabled = true; if (video) video.srcObject = null; if (status) status.textContent = error.name === 'NotAllowedError' ? 'Camera permission was blocked' : error.name === 'NotFoundError' ? 'No camera was found' : error.name === 'NotReadableError' ? 'Camera is busy in another app' : 'Camera could not be opened'; if (button) { button.innerHTML = icon('camera') + ' Open camera'; button.setAttribute('aria-pressed', 'false') } showToast(status?.textContent || error.message) } }
+} async function enableBrowserCamera() { const video = document.querySelector('#cameraSource'); const status = document.querySelector('#helpCameraStatus'); const button = document.querySelector('#cameraToggle'); try { if (!navigator.mediaDevices?.getUserMedia) throw new Error('Camera access requires localhost or a secure browser page.'); cameraDisabled = false; preferBrowserCamera = true; browserCameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 24, max: 30 } }, audio: false }); if (!video) throw new Error('Camera video element is unavailable.'); video.srcObject = browserCameraStream; await video.play(); document.querySelector('#handCameraWidget')?.classList.remove('is-minimized'); syncCameraUI(); if (voiceControl.shouldListen) { voiceWasOnBeforeCamera = true; voiceControl.pause('Camera on · voice is off'); updateTouchlessControls() } document.querySelector('#cameraDot').style.background = 'var(--green)'; document.querySelector('.camera-pill').classList.remove('offline'); try { await loadHandTracker(); document.querySelector('#cameraLabel').textContent = 'Camera on - gestures ready'; connectGestures() } catch (trackerError) { document.querySelector('#cameraLabel').textContent = 'Camera preview only'; if (status) status.textContent = trackerError.message; showToast(trackerError.message) } } catch (error) { if (browserCameraStream) browserCameraStream.getTracks().forEach(track => track.stop()); browserCameraStream = null; preferBrowserCamera = false; cameraDisabled = true; if (video) video.srcObject = null; if (status) status.textContent = error.name === 'NotAllowedError' ? 'Camera permission was blocked' : error.name === 'NotFoundError' ? 'No camera was found' : error.name === 'NotReadableError' ? 'Camera is busy in another app' : 'Camera could not be opened'; if (button) { button.innerHTML = icon('camera') + ' Open camera'; button.setAttribute('aria-pressed', 'false') } showToast(status?.textContent || error.message) } }
 function stopBrowserCamera() { preferBrowserCamera = false; if (cameraFrameTimer) { clearInterval(cameraFrameTimer); cameraFrameTimer = null } cameraFramePending = false; if (gestureSocket) { const ws = gestureSocket; gestureSocket = null; if (ws.readyState < 2) ws.close() } if (browserCameraStream) { browserCameraStream.getTracks().forEach(track => track.stop()); browserCameraStream = null } const source = document.querySelector('#cameraSource'); if (source) source.srcObject = null; const preview = document.querySelector('#browserCameraPreview'); if (preview) { preview.pause(); preview.srcObject = null; preview.hidden = true } const canvas = document.querySelector('#handLandmarkCanvas'); canvas?.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height); if (handTracker) { handTracker.close(); handTracker = null } handPinching = false; handPinchOrigin = null; handPinchTarget = null; pinchCandidateSince = null; pinchReleaseSince = null; handDragged = false; handCursorX = null; handCursorY = null; lastHandPoints = null; lastHandSeenAt = 0; clearHandTarget(); const pointer = document.querySelector('#handPointer'); if (pointer) { pointer.hidden = true; pointer.classList.remove('is-grabbing'); pointer.removeAttribute('data-carry') } syncCameraUI() }
-function toggleCamera() { touchlessFeedback.unlock(); if (!browserCameraStream) { enableBrowserCamera(); return } cameraDisabled = true; stopBrowserCamera(); const status = document.querySelector('#helpCameraStatus'); const button = document.querySelector('#cameraToggle'); if (status) status.textContent = 'Camera off'; if (button) { button.innerHTML = icon('camera') + ' Open camera'; button.setAttribute('aria-pressed', 'false') } const label = document.querySelector('#cameraLabel'); if (label) label.textContent = 'Camera off'; document.querySelector('.camera-pill')?.classList.add('offline') }
+function toggleCamera() { touchlessFeedback.unlock(); if (!browserCameraStream) { enableBrowserCamera(); return } cameraDisabled = true; stopBrowserCamera(); if (voiceWasOnBeforeCamera) { voiceWasOnBeforeCamera = false; voiceControl.resume(); updateTouchlessControls() } const status = document.querySelector('#helpCameraStatus'); const button = document.querySelector('#cameraToggle'); if (status) status.textContent = 'Camera off'; if (button) { button.innerHTML = icon('camera') + ' Open camera'; button.setAttribute('aria-pressed', 'false') } const label = document.querySelector('#cameraLabel'); if (label) label.textContent = 'Camera off'; document.querySelector('.camera-pill')?.classList.add('offline') }
 function kitchenScreen() { return `<section class="page-wrap"><div class="page-head"><div><span class="eyebrow">For the people behind the counter</span><h1 class="page-title">Kitchen orders.</h1><span class="subtle">Updates refresh automatically.</span></div><button class="secondary-button" data-action="refresh-orders">Refresh</button></div><div class="admin-tabs"><button class="filter-chip selected">All orders</button><span class="subtle">Live queue</span></div><div class="admin-grid" id="orderGrid"><p class="subtle">Loading ordersâ€¦</p></div></section>` }
 function renderOrders(orders) { const el = document.querySelector('#orderGrid'); if (!el) return; el.innerHTML = orders.length ? orders.map(o => `<article class="order-card"><header><h3>${h(o.id)}</h3><span class="status-badge">${h(o.status)}</span></header><p>${new Date(o.createdAt).toLocaleString()}<br>${o.items.map(x => `${x.quantity} × ${h(x.name)} â€” ${h(Object.values(x.optionLabels || {}).flat().join(', '))}`).join('<br>')}<br><b>${money(o.total)}</b></p><select data-status-id="${h(o.id)}">${['PENDING', 'PREPARING', 'READY', 'COMPLETED'].map(s => `<option ${o.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></article>`).join('') : '<p class="subtle">No orders yet. Confirmed customer orders will appear here.</p>' }
 function bind() { document.querySelector('#search')?.addEventListener('input', e => { query = e.target.value; const pos = e.target.selectionStart; render(); const el = document.querySelector('#search'); el?.focus(); el?.setSelectionRange(pos, pos) }); document.querySelectorAll('[data-category]').forEach(b => b.onclick = () => { category = b.dataset.category; render() }); document.querySelectorAll('[data-open-product]').forEach(el => { el.onclick = e => { if (e.target.closest('button')) return; openProduct(el.dataset.openProduct) }; el.onkeydown = e => { if (e.target === el && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openProduct(el.dataset.openProduct) } } }); document.querySelectorAll('[data-action]').forEach(b => b.onclick = () => action(b.dataset.action, b.dataset.id)); document.querySelectorAll('[data-set-option]').forEach(b => b.onclick = () => { opts[b.dataset.setOption] = b.dataset.value; render() }); document.querySelectorAll('[data-addon]').forEach(c => c.onchange = () => { const id = c.dataset.addon; opts.addons = c.checked ? [...opts.addons, id] : opts.addons.filter(x => x !== id); render() }); document.querySelectorAll('[data-status-id]').forEach(s => s.onchange = async () => { try { await changeStatus(s.dataset.statusId, s.value); renderKitchen() } catch (e) { showToast(e.message) } }) }
@@ -248,7 +249,7 @@ function openProduct(id) { const p = product(id); if (!p) return; chosen = id; e
 function action(name, id) { switch (name) { case 'enable-camera': case 'toggle-camera': toggleCamera(); break; case 'browse': if (route !== 'home') { go('home'); requestAnimationFrame(() => document.querySelector('#menu')?.scrollIntoView({ behavior: 'smooth' })) } else document.querySelector('#menu')?.scrollIntoView({ behavior: 'smooth' }); break; case 'help': go('help'); break; case 'go-home': go('home'); break; case 'customer-login': customerAuthMode = 'login'; customerAuthError = ''; go('customer-login'); break; case 'customer-register': customerAuthMode = 'register'; customerAuthError = ''; go('customer-register'); break; case 'customer-logout': logoutCustomer().catch(() => { }).finally(() => { customerIdentity = null; go('home'); showToast('You are signed out') }); break; case 'admin-login': openAdmin(); break; case 'detail': openProduct(id); break; case 'quick-add': { const p = product(id); addItem(lineItem(p)); touchlessFeedback.sound('success'); showToast(`${p.name} added to your cart`); break } case 'back': go('home'); break; case 'qty-minus': qty = Math.max(1, qty - 1); render(); break; case 'qty-plus': qty = Math.min(20, qty + 1); render(); break; case 'add-detail': { const item = lineItem(product(chosen), opts, qty); if (editing) replaceItem(editing, item); else addItem(item); touchlessFeedback.sound('success'); showToast(editing ? 'Your drink was updated' : 'Added to your cart'); editing = null; go('home'); break } case 'cart': go('cart'); break; case 'remove': removeItem(id); render(); break; case 'cart-minus': { const x = getCart().find(i => i.lineId === id); setQuantity(id, x.quantity - 1); render(); break } case 'cart-plus': { const x = getCart().find(i => i.lineId === id); setQuantity(id, x.quantity + 1); render(); break } case 'edit': { const x = getCart().find(i => i.lineId === id); chosen = x.productId; editing = id; opts = x.options; qty = x.quantity; route = 'detail'; render(); break } case 'checkout': go('checkout'); break; case 'cancel': go('cart'); break; case 'confirm': confirmOrder(); break; case 'print': window.print(); break; case 'new-order': clearCart(); lastOrder = null; category = 'All Coffee'; query = ''; go('home'); break; case 'refresh-orders': renderKitchen(); break } }
 async function confirmOrder() { const button = document.querySelector('[data-action="confirm"]'); if (!button) return; button.disabled = true; button.textContent = 'Sending to the cafÃ©â€¦'; try { lastOrder = await submitOrder(getCart()); clearCart(); touchlessFeedback.sound('success'); touchlessFeedback.speak(`Your order ${lastOrder.id} has been confirmed.`); go('receipt') } catch (e) { touchlessFeedback.sound('error'); showToast(e.message); button.disabled = false; button.textContent = 'Please try again' } }
 async function renderKitchenLegacy() { const orders = await getOrders(); renderOrders(orders) }
-document.querySelector('#cartButton').onclick = () => go('cart'); document.querySelector('#cameraHeaderToggle')?.addEventListener('click', toggleCamera); document.querySelector('#voiceToggle')?.addEventListener('click', () => { touchlessFeedback.unlock(); if (voiceControl.listening) { voiceControl.stop(); touchlessFeedback.setVoice(false) } else { touchlessFeedback.setVoice(true); if (!voiceControl.start()) touchlessFeedback.setVoice(false) }; updateTouchlessControls() }); document.querySelector('#soundToggle')?.addEventListener('click', () => { touchlessFeedback.unlock(); touchlessFeedback.setSound(!touchlessFeedback.soundEnabled); touchlessFeedback.sound('select'); updateTouchlessControls() }); updateTouchlessControls(); document.addEventListener('pointerdown', () => touchlessFeedback.unlock(), { once: true }); document.addEventListener('keydown', () => touchlessFeedback.unlock(), { once: true }); document.querySelector('#accountButton')?.addEventListener('click', () => go(customerIdentity ? 'customer-account' : 'customer-login')); document.querySelector('#helpButton').onclick = () => go('help'); document.querySelector('#handWidgetClose').onclick = toggleCamera; document.querySelector('#handWidgetMinimize').onclick = event => { const widget = document.querySelector('#handCameraWidget'); widget.classList.toggle('is-minimized'); event.currentTarget.textContent = widget.classList.contains('is-minimized') ? '+' : '-' }; document.querySelector('#languageSelect')?.addEventListener('change', e => { language = e.target.value; showToast('Language setting updated') }); document.querySelector('#modal').onclick = e => { if (e.target.id === 'modal') e.target.hidden = true }; window.addEventListener('cartchange', () => { document.querySelector('#cartCount').textContent = getCart().reduce((n, x) => n + x.quantity, 0) }); window.addEventListener('keydown', e => { if (e.key === 'Escape') { if (route === 'detail') go('home'); else if (route === 'checkout') go('cart') } if (route === 'home' && e.key === 'Enter' && document.activeElement === document.body) document.querySelector('[data-action="browse"]')?.click() });
+document.querySelector('#cartButton').onclick = () => go('cart'); document.querySelector('#cartButton').onclick = () => go('cart'); document.querySelector('#cameraHeaderToggle')?.addEventListener('click', toggleCamera); document.querySelector('#voiceToggle')?.addEventListener('click', () => { touchlessFeedback.unlock(); if (voiceControl.listening) { voiceControl.stop(); touchlessFeedback.setVoice(false); localStorage.setItem('kioskVoiceControl', 'off') } else { touchlessFeedback.setVoice(true); localStorage.setItem('kioskVoiceControl', 'on'); if (!voiceControl.start()) touchlessFeedback.setVoice(false) }; updateTouchlessControls() }); document.querySelector('#soundToggle')?.addEventListener('click', () => { touchlessFeedback.unlock(); touchlessFeedback.setSound(!touchlessFeedback.soundEnabled); touchlessFeedback.sound('select'); updateTouchlessControls() }); updateTouchlessControls(); document.addEventListener('pointerdown', () => touchlessFeedback.unlock(), { once: true }); document.addEventListener('keydown', () => touchlessFeedback.unlock(), { once: true }); document.querySelector('#accountButton')?.addEventListener('click', () => go(customerIdentity ? 'customer-account' : 'customer-login')); document.querySelector('#helpButton').onclick = () => go('help'); document.querySelector('#handWidgetClose').onclick = toggleCamera; document.querySelector('#handWidgetMinimize').onclick = event => { const widget = document.querySelector('#handCameraWidget'); widget.classList.toggle('is-minimized'); event.currentTarget.textContent = widget.classList.contains('is-minimized') ? '+' : '-' }; document.querySelector('#languageSelect')?.addEventListener('change', e => { language = e.target.value; showToast('Language setting updated') }); document.querySelector('#modal').onclick = e => { if (e.target.id === 'modal') e.target.hidden = true }; window.addEventListener('cartchange', () => { document.querySelector('#cartCount').textContent = getCart().reduce((n, x) => n + x.quantity, 0) }); window.addEventListener('keydown', e => { if (e.key === 'Escape') { if (route === 'detail') go('home'); else if (route === 'checkout') go('cart') } if (route === 'home' && e.key === 'Enter' && document.activeElement === document.body) document.querySelector('[data-action="browse"]')?.click() });
 document.addEventListener('submit', async event => {
   const form = event.target;
   if (form.id === 'customerAuthForm') {
@@ -287,6 +288,7 @@ function dispatchIntent(intent, source = 'voice', target = null) {
   const type = typeof intent === 'string' ? intent : intent?.type; const speak = message => touchlessFeedback.speak(message);
   // The admin workspace keeps its own controls: customer ordering commands never hijack it.
   if ((route === 'kitchen' || route === 'admin-login') && ['OPEN_MENU', 'OPEN_CART', 'OPEN_CONTACT', 'OPEN_SIGNIN', 'OPEN_REGISTER', 'CHECKOUT', 'CONFIRM_ORDER', 'CONFIRM', 'SELECT_PRODUCT', 'QUICK_ORDER_PRODUCT', 'CHOOSE_OPTION', 'ADD_TO_CART'].includes(type)) { showToast('That command works on the customer menu'); touchlessFeedback.sound('error'); return false }
+  if (type === 'OPEN_CAMERA') { if (browserCameraStream) { showToast('Camera is already on'); return true } touchlessFeedback.sound('select'); speak('Opening the camera.'); enableBrowserCamera(); return true }
   if (type === 'GO_HOME') { editing = null; chosen = null; activeSection = 'home'; go('home'); speak('Going home.'); touchlessFeedback.sound('select'); return true }
   if (type === 'OPEN_SECTION') {
     if (route === 'kitchen' || route === 'admin-login') { showToast('Open the customer menu before using storefront sections'); touchlessFeedback.sound('error'); return false }
@@ -421,5 +423,13 @@ function attachAdminDashboard() {
 async function dropOrderOnStatus(id, status) { try { await changeStatus(id, status); showToast(`Order moved to ${status.toLowerCase()}`); await renderKitchen() } catch (error) { showToast(error.message) } }
 document.querySelector('#adminAccess').addEventListener('click', () => { if (location.hash === '#admin') openAdmin(); else location.hash = 'admin' }); window.addEventListener('hashchange', () => { if (location.hash === '#admin') openAdmin() }); if (location.hash === '#admin') openAdmin();
 function connectGestures() { if (!browserCameraStream || cameraDisabled || !preferBrowserCamera || !handTracker) return; if (gestureSocket && gestureSocket.readyState < 2) return; const proto = location.protocol === 'https:' ? 'wss' : 'ws'; const ws = gestureSocket = new WebSocket(proto + '://' + location.host + '/ws/gestures/landmarks'); ws.onopen = () => { handTracker.onResults(results => { drawHandLandmarks(results); const points = results.multiHandLandmarks?.[0]?.map(point => [point.x, point.y]) || []; updateHandPointer(points); const stablePoints = points.length ? points : (Date.now() - lastHandSeenAt < 180 ? lastHandPoints || [] : []); if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ landmarks: stablePoints })) }); const source = document.querySelector('#cameraSource'); cameraFrameTimer = setInterval(() => { if (ws.readyState !== WebSocket.OPEN || !source?.videoWidth || cameraFramePending) return; cameraFramePending = true; handTracker.send({ image: source }).catch(() => { }).finally(() => { cameraFramePending = false }) }, 75) }; ws.onmessage = event => { const message = JSON.parse(event.data); const label = document.querySelector('#cameraLabel'); const help = document.querySelector('#helpCameraStatus'); if (message.type === 'error') { if (label) label.textContent = 'Gesture controls unavailable'; if (help) help.textContent = 'Camera preview is on, but gesture controls could not connect'; return } if (message.type === 'status' || message.type === 'gesture') { updateGestureIndicator(message.detected || 'no_hand', message.confidence || 0); const labels = { no_hand: 'Show one hand', one_finger: 'Pointing', two_fingers: 'Two fingers detected', open_palm: 'Hold open palm to open the menu', fist: 'Hold fist to cancel', pinch: 'Pinch detected', thumbs_up: 'Hold thumbs-up to select the highlighted control', thumbs_down: 'Thumbs down detected', hand: 'Hand detected' }; const text = labels[message.detected] || 'Show one hand'; if (label) label.textContent = text; if (help) help.textContent = text; document.querySelector('#cameraDot')?.style.setProperty('background', 'var(--green)'); document.querySelector('.camera-pill')?.classList.remove('offline') } if (message.type === 'gesture') handleGesture(message.gesture) }; ws.onerror = () => { const help = document.querySelector('#helpCameraStatus'); if (help) help.textContent = 'Camera preview is on; reconnecting gesture controls' }; ws.onclose = () => { if (cameraFrameTimer) { clearInterval(cameraFrameTimer); cameraFrameTimer = null } if (gestureSocket === ws) gestureSocket = null; if (browserCameraStream && !cameraDisabled) setTimeout(connectGestures, 1200) } }
-init(); connectGestures();
+function autoStartVoice() {
+  if (localStorage.getItem('kioskVoiceControl') === 'off') return;
+  const begin = () => { if (voiceControl.listening || browserCameraStream) return; touchlessFeedback.setVoice(true); if (voiceControl.start()) updateTouchlessControls() };
+  begin();
+  const retry = () => { if (localStorage.getItem('kioskVoiceControl') !== 'off') begin() };
+  window.addEventListener('pointerdown', retry, { once: true });
+  window.addEventListener('keydown', retry, { once: true });
+}
+init(); connectGestures(); autoStartVoice();
 
