@@ -70,7 +70,7 @@ export function parseVoiceIntent(transcript, products = []) {
     return { type: 'OPEN_ADMIN_TAB', tab };
   }
   if (/\b(open|show|find|take me to|go to|browse|see|want|get)\b.*\b(menu|coffees?)\b/.test(text) || /^(the )?(coffee )?menu$/.test(text) || /^(the )?coffee$/.test(text)) return { type: 'OPEN_MENU' };
-  if (/\b(cart|card|bag|basket|open cart|my cart|show cart|view cart)\b/.test(text)) {
+  if (/\b(cart page|page card|bag|basket|open cart|my cart|show cart|view cart)\b/.test(text)) {
     return { type: 'OPEN_CART' };
   }
   if (
