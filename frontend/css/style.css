@@ -133,4 +133,158 @@ body:has(.hand-hover) .hand-pointer{background:#168451;border-color:#eafff1;box-
 
 .touchless-toggle[aria-pressed='true']{background:#eaf2ec;border-color:#d4e2d7;color:#3f7352}.voice-status{position:absolute;top:calc(100% + 5px);right:24px;padding:5px 9px;border-radius:12px;background:#fffaf4;color:var(--muted);font:10px 'DM Sans';white-space:nowrap;box-shadow:0 2px 9px #20140f12}.touchless-toggle{min-width:78px}@media(max-width:680px){.voice-status{right:12px;top:calc(100% + 2px)}.touchless-toggle{font-size:9px;padding:0 9px;min-height:34px}}
 
+
 .voice-help{margin:20px 0;padding:20px 22px;background:#f4eee5;border-left:3px solid #b98055}.voice-help b{font:700 10px 'DM Sans';letter-spacing:1.2px;color:#895c3e}.voice-help p{margin:10px 0;color:var(--muted);font:12px/1.7 'DM Sans'}.voice-help small{color:var(--brown);font:10px 'DM Sans'}
+
+
+/* ===== Navbar (final) ===== */
+.app-shell > .topbar{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  height:auto;
+  min-height:0;
+  row-gap:0;
+  padding:18px clamp(22px,4vw,64px) 0;
+  background:#faf7f1;
+  border-bottom:0;
+}
+
+.app-shell > .topbar .brand{order:1}
+
+.app-shell > .topbar .top-actions{
+  order:2;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  position:relative;
+}
+
+
+.app-shell > .topbar::after{
+  content:'';
+  order:3;
+  flex:0 0 100%;
+  height:0;
+  margin:18px 0 0;
+  border-bottom:1px solid #e7ded3;
+}
+
+.app-shell > .topbar .main-nav{
+  order:4;
+  flex:0 0 100%;
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:40px;
+  padding:0 0 8px;
+  margin:0;
+}
+
+.app-shell > .topbar .help-button{
+  width:48px;
+  height:48px;
+  min-height:48px;
+  padding:0;
+  flex:0 0 48px;
+  border-radius:50%;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.app-shell > .topbar .camera-header-button,
+.app-shell > .topbar .account-button{
+  height:48px;
+  min-height:48px;
+  padding:0 22px;
+  border-radius:999px;
+  font-size:13px;
+}
+.app-shell > .topbar .camera-pill{gap:8px;font-size:12px;margin-right:6px}
+
+
+.app-shell > .topbar .nav-link{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:22px 4px 14px;
+  font-size:13px;
+  letter-spacing:1px;
+  border-bottom:3px solid transparent;
+  box-shadow:none;
+}
+.app-shell > .topbar .nav-link.active{
+  border-bottom-color:#c27a2c;
+  color:#3b2b21;
+  box-shadow:none;
+}
+
+
+.app-shell > .topbar .cart-button{
+  position:static;
+  margin:0 0 0 8px;
+  height:56px;
+  min-height:56px;
+  padding:0 28px;
+  gap:14px;
+  border-radius:999px;
+  font-size:13px;
+}
+.app-shell > .topbar .cart-button b{width:30px;height:30px;font-size:14px}
+
+
+.app-shell > .topbar .voice-status{top:calc(100% + 6px);right:0}
+
+@media(max-width:680px){
+  .app-shell > .topbar{padding:12px 16px 0}
+  .app-shell > .topbar .top-actions{gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .app-shell > .topbar .main-nav{gap:16px;overflow-x:auto}
+  .app-shell > .topbar .nav-link{padding:14px 2px 10px;font-size:10px}
+}
+.app-shell > .topbar::after{
+  display:none !important;
+}
+
+.app-shell > .topbar .main-nav{
+  order:4 !important;
+  flex:0 0 100% !important;
+  width:100% !important;
+  justify-content:center !important;
+  margin-top:18px !important;
+  border-top:1px solid #e7ded3 !important;
+  padding:0 0 8px !important;
+}
+
+
+.app-shell > .topbar .cart-button{
+  height:56px !important;
+  min-height:56px !important;
+  padding:0 28px !important;
+  font-size:13px !important;
+}
+.app-shell > .topbar .nav-link{
+  font-size:14px !important;
+}
+/* ===== Move nav closer to the line ===== */
+.app-shell > .topbar .main-nav{
+  margin-top:14px !important;
+  padding:0 0 0 !important;
+  align-items:center !important;
+}
+
+.app-shell > .topbar .nav-link{
+  padding:12px 4px 10px !important;
+}
+
+.app-shell > .topbar .cart-button{
+  height:48px !important;
+  min-height:48px !important;
+  padding:0 24px !important;
+  margin:6px 0 6px 8px !important;
+}
+.app-shell > .topbar .cart-button b{
+  width:28px !important;
+  height:28px !important;
+}
