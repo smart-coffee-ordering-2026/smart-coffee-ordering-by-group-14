@@ -18,13 +18,17 @@
 <body>
     <div class="app-shell"><video id="cameraSource" class="camera-source" autoplay playsinline muted
             aria-hidden="true"></video>
-        <header class="topbar"><a class="brand" href="#home" data-section="home" aria-label="Smart Coffee Ordering and Co home"><span
-                    class="brand-mark">B<span>.</span></span><span class="brand-copy"><b>Smart Coffee Ordering</b><small>SPECIALTY COFFEE HOUSE</small></span></a>
+        <header class="topbar"><a class="brand" href="#home" data-section="home"
+                aria-label="Smart Coffee Ordering and Co home"><span class="brand-mark">B<span>.</span></span><span
+                    class="brand-copy"><b>Smart Coffee Ordering</b><small>SPECIALTY COFFEE HOUSE</small></span></a>
             <nav class="main-nav" aria-label="Main navigation"><a class="nav-link active" href="#home"
                     data-section="home">Home</a><a class="nav-link" href="#menu" data-section="menu">Menu</a><a
                     class="nav-link" href="#about" data-section="about">About</a><a class="nav-link" href="#gallery"
                     data-section="gallery">Gallery</a><a class="nav-link" href="#contact"
-                    data-section="contact">Contact</a></nav>
+                    data-section="contact">Contact</a> 
+                    <button class="cart-button" id="cartButton"
+                    type="button" aria-label="Open cart"><span>Cart</span><b id="cartCount">0</b></button>
+                </nav>
             <div class="top-actions"><span class="camera-pill"><i id="cameraDot"></i><span id="cameraLabel">Camera
                         off</span></span><button class="icon-button help-button" id="helpButton" type="button"
                     aria-label="How to use hand control">?</button><button class="camera-header-button"
@@ -34,8 +38,7 @@
                     class="camera-header-button touchless-toggle" id="soundToggle" type="button"
                     aria-label="Toggle sound feedback" aria-pressed="true">Sound: On</button><span id="voiceStatus"
                     class="voice-status" aria-live="polite">Not listening</span><button class="account-button"
-                    id="accountButton" type="button">Sign in</button><button class="cart-button" id="cartButton"
-                    type="button" aria-label="Open cart"><span>Cart</span><b id="cartCount">0</b></button></div>
+                    id="accountButton" type="button">Sign in</button></div>
         </header>
         <main id="view" aria-live="polite"></main>
         <aside id="gestureIndicator" class="gesture-indicator" hidden aria-live="polite"><span id="gestureIndicatorIcon"
