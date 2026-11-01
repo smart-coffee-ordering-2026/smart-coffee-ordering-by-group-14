@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+<<<<<<< HEAD
 import sys
 import shutil
 from dotenv import load_dotenv
@@ -46,6 +47,15 @@ if IS_FROZEN and not MENU_PATH.exists():
 
 # Load environment variables
 load_dotenv(ENV_PATH)
+=======
+from dotenv import load_dotenv
+
+ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = ROOT / "data"
+DB_PATH = DATA_DIR / "orders.sqlite3"
+MENU_PATH = DATA_DIR / "menu.json"
+load_dotenv(ROOT / ".env")
+>>>>>>> origin/Develop
 GESTURE_HOLD_SECONDS = 1.25
 FIST_CANCEL_HOLD_SECONDS = 0.65
 GESTURE_COOLDOWN_SECONDS = 0.28
