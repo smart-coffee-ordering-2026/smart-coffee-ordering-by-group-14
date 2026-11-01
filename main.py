@@ -3,7 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Request, Response, Depends
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
-from database import initialize, database_health
+from .database import initialize, database_health
 from .menu_manager import get_menu, save_menu
 from .order_manager import place_order, list_orders, update_status
 from .cart_manager import validate_items
