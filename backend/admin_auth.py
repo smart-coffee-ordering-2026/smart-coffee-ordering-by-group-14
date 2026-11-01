@@ -6,6 +6,14 @@ import json
 import os
 import secrets
 import time
+<<<<<<< HEAD
+from threading import Lock
+from fastapi import HTTPException, Request
+from dotenv import load_dotenv
+from .config import DATA_DIR, ENV_PATH
+
+SECRET_FILE = DATA_DIR / "admin_signing.key"
+=======
 from pathlib import Path
 from threading import Lock
 from fastapi import HTTPException, Request
@@ -13,17 +21,26 @@ from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent.parent
 SECRET_FILE = ROOT / "data" / "admin_signing.key"
+>>>>>>> origin/Develop
 COOKIE_NAME = "brew_admin_session"
 SESSION_SECONDS = 8 * 60 * 60
 _key_lock = Lock()
 _attempts = {}
 
 def admin_email():
+<<<<<<< HEAD
+    load_dotenv(ENV_PATH, override=True)
+    return os.environ.get("KIOSK_ADMIN_EMAIL", "").strip().casefold()
+
+def admin_configured():
+    load_dotenv(ENV_PATH, override=True)
+=======
     load_dotenv(ROOT / ".env", override=True)
     return os.environ.get("KIOSK_ADMIN_EMAIL", "").strip().casefold()
 
 def admin_configured():
     load_dotenv(ROOT / ".env", override=True)
+>>>>>>> origin/Develop
     return bool(admin_email() and os.environ.get("KIOSK_ADMIN_PASSWORD"))
 
 def _signing_key():
